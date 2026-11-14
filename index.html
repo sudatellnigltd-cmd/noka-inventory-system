@@ -1,0 +1,404 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#087f5b">
+  <title>NOKA Inventory System</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+  <!-- LOGIN PAGE -->
+  <section id="loginPage" class="login-page">
+    <div class="login-card">
+      <div class="brand-logo">
+        <i class="fa-solid fa-boxes-stacked"></i>
+      </div>
+
+      <h1>NOKA Inventory</h1>
+      <p>Sign in to manage your business</p>
+
+      <form id="loginForm">
+        <label>Email Address</label>
+        <input
+          type="email"
+          id="loginEmail"
+          placeholder="Enter your email"
+          required
+        >
+
+        <label>Password</label>
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Enter your password"
+          required
+        >
+
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          Sign In
+        </button>
+
+        <p id="loginMessage" class="message"></p>
+      </form>
+
+      <small>Powered by SUDATELL NIG LIMITED</small>
+    </div>
+  </section>
+
+
+  <!-- MAIN APPLICATION -->
+  <section id="appPage" class="app-page" style="display:none;">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <span>NOKA</span>
+      </div>
+
+      <div class="sidebar-menu">
+        <button class="nav-link active" data-page="dashboard">
+          <i class="fa-solid fa-gauge-high"></i>
+          Dashboard
+        </button>
+
+        <button class="nav-link" data-page="products">
+          <i class="fa-solid fa-box"></i>
+          Products
+        </button>
+
+        <button class="nav-link" data-page="sales">
+          <i class="fa-solid fa-cart-shopping"></i>
+          Sales
+        </button>
+
+        <button class="nav-link" data-page="customers">
+          <i class="fa-solid fa-users"></i>
+          Customers
+        </button>
+
+        <button class="nav-link" data-page="suppliers">
+          <i class="fa-solid fa-truck"></i>
+          Suppliers
+        </button>
+
+        <button class="nav-link" data-page="reports">
+          <i class="fa-solid fa-chart-column"></i>
+          Reports
+        </button>
+      </div>
+
+      <div class="sidebar-bottom">
+        <button id="logoutBtn" class="nav-link logout-link">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          Logout
+        </button>
+        <small>SUDATELL NIG LIMITED</small>
+      </div>
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <!-- TOP HEADER -->
+      <header class="topbar">
+        <div>
+          <h2 id="pageTitle">Dashboard</h2>
+          <p>Inventory Management System</p>
+        </div>
+
+        <div class="topbar-right">
+          <span class="online-status">
+            <i class="fa-solid fa-circle"></i> Online
+          </span>
+        </div>
+      </header>
+
+
+      <!-- DASHBOARD -->
+      <section id="page-dashboard" class="page-section">
+
+        <div class="welcome-section">
+          <h2>Welcome to NOKA</h2>
+          <p>Monitor your business activities and stock.</p>
+        </div>
+
+        <div class="stats-grid">
+
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fa-solid fa-box"></i>
+            </div>
+            <div>
+              <p>Total Products</p>
+              <h3 id="totalProducts">0</h3>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <div>
+              <p>Total Customers</p>
+              <h3 id="totalCustomers">0</h3>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fa-solid fa-truck"></i>
+            </div>
+            <div>
+              <p>Total Suppliers</p>
+              <h3 id="totalSuppliers">0</h3>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fa-solid fa-money-bill-wave"></i>
+            </div>
+            <div>
+              <p>Total Sales</p>
+              <h3 id="totalSales">₦0.00</h3>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="content-card">
+          <div class="section-heading">
+            <h3>Recent Sales</h3>
+          </div>
+
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="recentSalesTable">
+                <tr>
+                  <td colspan="4">No sales records yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- PRODUCTS -->
+      <section id="page-products" class="page-section" style="display:none;">
+
+        <div class="section-heading">
+          <div>
+            <h2>Products</h2>
+            <p>Manage your inventory and stock.</p>
+          </div>
+
+          <button id="addProductBtn" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> Add Product
+          </button>
+        </div>
+
+        <div class="content-card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product Name</th>
+                  <th>SKU</th>
+                  <th>Category</th>
+                  <th>Cost Price</th>
+                  <th>Selling Price</th>
+                  <th>Quantity</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody id="productsTable">
+                <tr>
+                  <td colspan="7">No products available.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- SALES -->
+      <section id="page-sales" class="page-section" style="display:none;">
+
+        <div class="section-heading">
+          <div>
+            <h2>Sales</h2>
+            <p>Manage and monitor sales transactions.</p>
+          </div>
+
+          <button id="addSaleBtn" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> New Sale
+          </button>
+        </div>
+
+        <div class="content-card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Customer</th>
+                  <th>Date</th>
+                  <th>Total Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+
+              <tbody id="salesTable">
+                <tr>
+                  <td colspan="5">No sales available.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- CUSTOMERS -->
+      <section id="page-customers" class="page-section" style="display:none;">
+
+        <div class="section-heading">
+          <div>
+            <h2>Customers</h2>
+            <p>Manage your customer information.</p>
+          </div>
+
+          <button id="addCustomerBtn" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> Add Customer
+          </button>
+        </div>
+
+        <div class="content-card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Address</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody id="customersTable">
+                <tr>
+                  <td colspan="5">No customers available.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- SUPPLIERS -->
+      <section id="page-suppliers" class="page-section" style="display:none;">
+
+        <div class="section-heading">
+          <div>
+            <h2>Suppliers</h2>
+            <p>Manage your suppliers.</p>
+          </div>
+
+          <button id="addSupplierBtn" class="btn-primary">
+            <i class="fa-solid fa-plus"></i> Add Supplier
+          </button>
+        </div>
+
+        <div class="content-card">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Supplier Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Address</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody id="suppliersTable">
+                <tr>
+                  <td colspan="5">No suppliers available.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- REPORTS -->
+      <section id="page-reports" class="page-section" style="display:none;">
+
+        <div class="section-heading">
+          <div>
+            <h2>Reports</h2>
+            <p>View and export your business records.</p>
+          </div>
+
+          <button id="exportReportBtn" class="btn-primary">
+            <i class="fa-solid fa-file-csv"></i> Export CSV
+          </button>
+        </div>
+
+        <div class="content-card">
+          <h3>Business Summary</h3>
+          <p>Total Products: <strong id="reportProducts">0</strong></p>
+          <p>Total Customers: <strong id="reportCustomers">0</strong></p>
+          <p>Total Suppliers: <strong id="reportSuppliers">0</strong></p>
+          <p>Total Sales: <strong id="reportSales">₦0.00</strong></p>
+        </div>
+
+      </section>
+
+    </main>
+  </section>
+
+
+  <!-- SUPABASE LIBRARY -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- APPLICATION JAVASCRIPT -->
+  <script src="app.js"></script>
+
+</body>
+</html>
