@@ -11,7 +11,10 @@ const SUPABASE_KEY = "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY";
 
 let db = null;
 
-if (window.supabase && SUPABASE_KEY !== "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY") {
+if (
+    window.supabase &&
+    SUPABASE_KEY !== "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY"
+) {
     db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
@@ -25,9 +28,9 @@ let stockMovements = [];
 let currentPage = "dashboard";
 let editingId = null;
 
-// HELPER FUNCTIONS
 const $ = id => document.getElementById(id);
 
+// HELPERS
 function money(value) {
     return "₦" + Number(value || 0).toLocaleString("en-NG", {
         minimumFractionDigits: 2,
@@ -63,20 +66,12 @@ function notify(message, type = "success") {
 
 function formatDate(value) {
     if (!value) return "-";
-    return new Date(value).toLocaleDateString("en-NG");
-}
 
-function closeModal() {
-    $("modalOverlay")?.classList.remove("active");
-    editingId = null;
-}
+    const date = new Date(value);
 
-function openModal(title, content) {
-    if (!$("modalOverlay")) return;
+    if (Number.isNaN(date.getTime())) return "-";
 
-    $("modalTitle").textContent = title;
-    $("modalBody").innerHTML = content;
-    $("modalOverlay").classList.add("active");
+    return date.toLocaleDateString("en-NG");
 }
 
 function emptyRow(columns) {
@@ -85,18 +80,53 @@ function emptyRow(columns) {
 
 function requireDatabase() {
     if (!db) {
-        notify("Please configure your Supabase Publishable Key in app.js.", "error");
+        notify(
+            "Please configure your Supabase Publishable Key in app.js.",
+            "error"
+        );
         return false;
     }
+
     return true;
+}
+
+function setButtonLoading(button, loading, text = "Please wait...") {
+    if (!button) return;
+
+    if (loading) {
+        button.dataset.originalText = button.textContent;
+        button.disabled = true;
+        button.textContent = text;
+    } else {
+        button.disabled = false;
+        button.textContent = button.dataset.originalText || "Save";
+    }
+}
+
+// MODAL
+function closeModal() {
+    $("modalOverlay")?.classList.add("hidden");
+    editingId = null;
+}
+
+function openModal(title, content) {
+    if (!$("modalOverlay")) return;
+
+    $("modalTitle").textContent = title;
+    $("modalBody").innerHTML = content;
+
+    // Remove hidden class so the modal becomes visible.
+    $("modalOverlay").classList.remove("hidden");
 }
 
 // AUTHENTICATION
 async function login(email, password) {
     if (!requireDatabase()) return;
 
+    const message = $("loginMessage");
+
     try {
-        if ($("loginMessage")) $("loginMessage").textContent = "Signing in...";
+        if (message) message.textContent = "Signing in...";
 
         const { data, error } = await db.auth.signInWithPassword({
             email,
@@ -108,61 +138,68 @@ async function login(email, password) {
         currentUser = data.user;
         await loadApplication();
 
+        if (message) message.textContent = "";
+
     } catch (error) {
-        if ($("loginMessage")) $("loginMessage").textContent = error.message;
+        if (message) message.textContent = error.message;
     }
 }
 
 async function logout() {
-    if (!db) return;
+    if (!requireDatabase()) return;
 
-    const { error } = await db.auth.signOut();
+    try {
+        const { error } = await db.auth.signOut();
 
-    if (error) {
+        if (error) throw error;
+
+        currentUser = null;
+        products = [];
+        customers = [];
+        suppliers = [];
+        sales = [];
+        stockMovements = [];
+
+        $("appPage")?.classList.add("hidden");
+        $("loginPage")?.classList.remove("hidden");
+
+        notify("Signed out successfully.");
+
+    } catch (error) {
         notify(error.message, "error");
-        return;
     }
-
-    currentUser = null;
-    products = [];
-    customers = [];
-    suppliers = [];
-    sales = [];
-    stockMovements = [];
-
-    $("appPage")?.classList.add("hidden");
-    $("loginPage")?.classList.remove("hidden");
-
-    notify("Signed out successfully.");
 }
 
 async function checkSession() {
     if (!requireDatabase()) return;
 
-    const { data, error } = await db.auth.getSession();
+    try {
+        const { data, error } = await db.auth.getSession();
 
-    if (error) {
-        notify(error.message, "error");
-        return;
-    }
+        if (error) throw error;
 
-    if (data.session) {
-        currentUser = data.session.user;
-        await loadApplication();
-    } else {
-        $("loginPage")?.classList.remove("hidden");
-        $("appPage")?.classList.add("hidden");
-    }
-
-    db.auth.onAuthStateChange((event, session) => {
-        if (event === "SIGNED_OUT" || !session) {
+        if (data.session) {
+            currentUser = data.session.user;
+            await loadApplication();
+        } else {
             $("loginPage")?.classList.remove("hidden");
             $("appPage")?.classList.add("hidden");
         }
-    });
+
+        db.auth.onAuthStateChange((event, session) => {
+            if (event === "SIGNED_OUT" || !session) {
+                currentUser = null;
+                $("loginPage")?.classList.remove("hidden");
+                $("appPage")?.classList.add("hidden");
+            }
+        });
+
+    } catch (error) {
+        notify("Authentication error: " + error.message, "error");
+    }
 }
 
-// LOAD DATA
+// LOAD APPLICATION
 async function loadApplication() {
     if (!db || !currentUser) return;
 
@@ -186,6 +223,7 @@ async function loadApplication() {
     }
 }
 
+// LOAD DATABASE RECORDS
 async function loadProducts() {
     const { data, error } = await db
         .from("products")
@@ -248,6 +286,19 @@ async function loadStockMovements() {
 
 // NAVIGATION
 function navigate(page) {
+    const allowedPages = [
+        "dashboard",
+        "products",
+        "stock",
+        "sales",
+        "customers",
+        "suppliers",
+        "reports",
+        "settings"
+    ];
+
+    if (!allowedPages.includes(page)) return;
+
     currentPage = page;
 
     document.querySelectorAll("[data-page]").forEach(item => {
@@ -272,7 +323,7 @@ function navigate(page) {
     };
 
     if ($("pageTitle")) {
-        $("pageTitle").textContent = titles[page] || page;
+        $("pageTitle").textContent = titles[page];
     }
 
     if (page === "dashboard") updateDashboard();
@@ -286,21 +337,34 @@ function navigate(page) {
 // DASHBOARD
 function updateDashboard() {
     const totalStock = products.reduce(
-        (sum, item) => sum + Number(item.quantity || 0), 0
+        (sum, item) => sum + Number(item.quantity || 0),
+        0
     );
 
     const totalSales = sales.reduce(
-        (sum, item) => sum + Number(item.total_amount || 0), 0
+        (sum, item) => sum + Number(item.total_amount || 0),
+        0
     );
 
-    const lowStock = products.filter(
-        item => Number(item.quantity || 0) <= Number(item.min_stock || 5)
+    const lowStock = products.filter(item =>
+        Number(item.quantity || 0) <= Number(item.min_stock ?? 5)
     ).length;
 
-    if ($("totalProducts")) $("totalProducts").textContent = products.length;
-    if ($("totalStock")) $("totalStock").textContent = totalStock;
-    if ($("totalSales")) $("totalSales").textContent = money(totalSales);
-    if ($("lowStock")) $("lowStock").textContent = lowStock;
+    if ($("totalProducts")) {
+        $("totalProducts").textContent = products.length;
+    }
+
+    if ($("totalStock")) {
+        $("totalStock").textContent = totalStock;
+    }
+
+    if ($("totalSales")) {
+        $("totalSales").textContent = money(totalSales);
+    }
+
+    if ($("lowStock")) {
+        $("lowStock").textContent = lowStock;
+    }
 
     const recent = $("recentProducts");
 
@@ -309,8 +373,8 @@ function updateDashboard() {
             <tr>
                 <td>${escapeHTML(item.name)}</td>
                 <td>${escapeHTML(item.sku || "-")}</td>
+                <td>${escapeHTML(item.category || "-")}</td>
                 <td>${Number(item.quantity || 0)}</td>
-                <td>${money(item.selling_price)}</td>
             </tr>
         `).join("") || emptyRow(4);
     }
@@ -323,7 +387,8 @@ function renderProducts(search = "") {
 
     const filtered = products.filter(item =>
         `${item.name} ${item.sku || ""} ${item.category || ""}`
-            .toLowerCase().includes(search.toLowerCase())
+            .toLowerCase()
+            .includes(search.toLowerCase())
     );
 
     table.innerHTML = filtered.map(item => `
@@ -335,9 +400,12 @@ function renderProducts(search = "") {
             <td>${money(item.cost_price)}</td>
             <td>${money(item.selling_price)}</td>
             <td>
-                <button class="btn-small" data-action="edit-product"
+                <button type="button" class="secondary-btn"
+                    data-action="edit-product"
                     data-id="${escapeHTML(item.id)}">Edit</button>
-                <button class="btn-small danger" data-action="delete-product"
+
+                <button type="button" class="primary-btn"
+                    data-action="delete-product"
                     data-id="${escapeHTML(item.id)}">Delete</button>
             </td>
         </tr>
@@ -349,14 +417,18 @@ function productForm(item = {}) {
 
     openModal(editingId ? "Edit Product" : "Add New Product", `
         <form id="productForm" class="modal-form">
+
             <label>Product Name</label>
-            <input name="name" required value="${escapeHTML(item.name || "")}">
+            <input name="name" required
+                value="${escapeHTML(item.name || "")}">
 
             <label>SKU / Product Code</label>
-            <input name="sku" value="${escapeHTML(item.sku || "")}">
+            <input name="sku"
+                value="${escapeHTML(item.sku || "")}">
 
             <label>Category</label>
-            <input name="category" value="${escapeHTML(item.category || "")}">
+            <input name="category"
+                value="${escapeHTML(item.category || "")}">
 
             <label>Quantity</label>
             <input name="quantity" type="number" min="0" required
@@ -367,14 +439,18 @@ function productForm(item = {}) {
                 value="${Number(item.min_stock ?? 5)}">
 
             <label>Cost Price (₦)</label>
-            <input name="cost_price" type="number" min="0" step="0.01"
-                required value="${Number(item.cost_price || 0)}">
+            <input name="cost_price" type="number" min="0"
+                step="0.01" required
+                value="${Number(item.cost_price || 0)}">
 
             <label>Selling Price (₦)</label>
-            <input name="selling_price" type="number" min="0" step="0.01"
-                required value="${Number(item.selling_price || 0)}">
+            <input name="selling_price" type="number" min="0"
+                step="0.01" required
+                value="${Number(item.selling_price || 0)}">
 
-            <button type="submit" class="btn-primary">Save Product</button>
+            <button type="submit" class="primary-btn">
+                Save Product
+            </button>
         </form>
     `);
 
@@ -383,6 +459,8 @@ function productForm(item = {}) {
 
 async function saveProduct(event) {
     event.preventDefault();
+
+    if (!currentUser) return notify("Please sign in again.", "error");
 
     const form = new FormData(event.target);
 
@@ -407,6 +485,7 @@ async function saveProduct(event) {
         closeModal();
         await loadProducts();
         updateDashboard();
+
         notify("Product saved successfully.");
 
     } catch (error) {
@@ -418,11 +497,16 @@ async function deleteProduct(id) {
     if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
-        const { error } = await db.from("products").delete().eq("id", id);
+        const { error } = await db
+            .from("products")
+            .delete()
+            .eq("id", id);
+
         if (error) throw error;
 
         await loadProducts();
         updateDashboard();
+
         notify("Product deleted.");
 
     } catch (error) {
@@ -430,7 +514,7 @@ async function deleteProduct(id) {
     }
 }
 
-// STOCK
+// STOCK MANAGEMENT
 function renderStock() {
     const table = $("stockTable");
     if (!table) return;
@@ -447,12 +531,19 @@ function renderStock() {
 }
 
 function stockForm() {
+    if (!products.length) {
+        return notify("Add a product before recording stock.", "error");
+    }
+
     const options = products.map(item => `
-        <option value="${escapeHTML(item.id)}">${escapeHTML(item.name)}</option>
+        <option value="${escapeHTML(item.id)}">
+            ${escapeHTML(item.name)} (Stock: ${Number(item.quantity)})
+        </option>
     `).join("");
 
     openModal("Stock Movement", `
         <form id="stockForm" class="modal-form">
+
             <label>Select Product</label>
             <select name="product_id" required>${options}</select>
 
@@ -468,7 +559,9 @@ function stockForm() {
             <label>Notes</label>
             <input name="notes" placeholder="Optional notes">
 
-            <button type="submit" class="btn-primary">Save Movement</button>
+            <button type="submit" class="primary-btn">
+                Save Movement
+            </button>
         </form>
     `);
 
@@ -480,14 +573,20 @@ async function saveStockMovement(event) {
 
     const form = new FormData(event.target);
 
-    const product = products.find(
-        item => String(item.id) === String(form.get("product_id"))
+    const product = products.find(item =>
+        String(item.id) === String(form.get("product_id"))
     );
 
-    if (!product) return notify("Product not found.", "error");
+    if (!product) {
+        return notify("Product not found.", "error");
+    }
 
     const quantity = Number(form.get("quantity"));
     const type = form.get("movement_type");
+
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+        return notify("Enter a valid quantity.", "error");
+    }
 
     const newQuantity = type === "in"
         ? Number(product.quantity) + quantity
@@ -520,10 +619,12 @@ async function saveStockMovement(event) {
 
         closeModal();
 
-        await loadProducts();
-        await loadStockMovements();
-        updateDashboard();
+        await Promise.all([
+            loadProducts(),
+            loadStockMovements()
+        ]);
 
+        updateDashboard();
         notify("Stock movement saved.");
 
     } catch (error) {
@@ -543,7 +644,7 @@ function renderCustomers() {
             <td>${escapeHTML(item.email || "-")}</td>
             <td>${escapeHTML(item.address || "-")}</td>
             <td>
-                <button class="btn-small danger"
+                <button type="button" class="primary-btn"
                     data-action="delete-customer"
                     data-id="${escapeHTML(item.id)}">Delete</button>
             </td>
@@ -554,6 +655,7 @@ function renderCustomers() {
 function customerForm() {
     openModal("Add Customer", `
         <form id="customerForm" class="modal-form">
+
             <label>Customer Name</label>
             <input name="name" required>
 
@@ -566,7 +668,9 @@ function customerForm() {
             <label>Address</label>
             <textarea name="address"></textarea>
 
-            <button class="btn-primary" type="submit">Save Customer</button>
+            <button class="primary-btn" type="submit">
+                Save Customer
+            </button>
         </form>
     `);
 
@@ -588,6 +692,7 @@ function customerForm() {
 
             closeModal();
             await loadCustomers();
+
             notify("Customer saved.");
 
         } catch (error) {
@@ -599,12 +704,20 @@ function customerForm() {
 async function deleteCustomer(id) {
     if (!confirm("Delete this customer?")) return;
 
-    const { error } = await db.from("customers").delete().eq("id", id);
+    try {
+        const { error } = await db
+            .from("customers")
+            .delete()
+            .eq("id", id);
 
-    if (error) return notify(error.message, "error");
+        if (error) throw error;
 
-    await loadCustomers();
-    notify("Customer deleted.");
+        await loadCustomers();
+        notify("Customer deleted.");
+
+    } catch (error) {
+        notify(error.message, "error");
+    }
 }
 
 // SUPPLIERS
@@ -619,7 +732,7 @@ function renderSuppliers() {
             <td>${escapeHTML(item.email || "-")}</td>
             <td>${escapeHTML(item.address || "-")}</td>
             <td>
-                <button class="btn-small danger"
+                <button type="button" class="primary-btn"
                     data-action="delete-supplier"
                     data-id="${escapeHTML(item.id)}">Delete</button>
             </td>
@@ -630,6 +743,7 @@ function renderSuppliers() {
 function supplierForm() {
     openModal("Add Supplier", `
         <form id="supplierForm" class="modal-form">
+
             <label>Supplier Name</label>
             <input name="name" required>
 
@@ -642,7 +756,9 @@ function supplierForm() {
             <label>Address</label>
             <textarea name="address"></textarea>
 
-            <button class="btn-primary" type="submit">Save Supplier</button>
+            <button class="primary-btn" type="submit">
+                Save Supplier
+            </button>
         </form>
     `);
 
@@ -664,6 +780,7 @@ function supplierForm() {
 
             closeModal();
             await loadSuppliers();
+
             notify("Supplier saved.");
 
         } catch (error) {
@@ -675,12 +792,20 @@ function supplierForm() {
 async function deleteSupplier(id) {
     if (!confirm("Delete this supplier?")) return;
 
-    const { error } = await db.from("suppliers").delete().eq("id", id);
+    try {
+        const { error } = await db
+            .from("suppliers")
+            .delete()
+            .eq("id", id);
 
-    if (error) return notify(error.message, "error");
+        if (error) throw error;
 
-    await loadSuppliers();
-    notify("Supplier deleted.");
+        await loadSuppliers();
+        notify("Supplier deleted.");
+
+    } catch (error) {
+        notify(error.message, "error");
+    }
 }
 
 // SALES
@@ -712,11 +837,14 @@ function saleForm() {
     `).join("");
 
     const customerOptions = customers.map(item => `
-        <option value="${escapeHTML(item.id)}">${escapeHTML(item.name)}</option>
+        <option value="${escapeHTML(item.id)}">
+            ${escapeHTML(item.name)}
+        </option>
     `).join("");
 
     openModal("New Sale", `
         <form id="saleForm" class="modal-form">
+
             <label>Customer</label>
             <select name="customer_id">
                 <option value="">Walk-in Customer</option>
@@ -724,10 +852,13 @@ function saleForm() {
             </select>
 
             <label>Product</label>
-            <select name="product_id" required>${productOptions}</select>
+            <select name="product_id" required>
+                ${productOptions}
+            </select>
 
             <label>Quantity</label>
-            <input name="quantity" type="number" min="1" value="1" required>
+            <input name="quantity" type="number"
+                min="1" value="1" required>
 
             <label>Payment Method</label>
             <select name="payment_method">
@@ -737,7 +868,9 @@ function saleForm() {
                 <option value="other">Other</option>
             </select>
 
-            <button type="submit" class="btn-primary">Complete Sale</button>
+            <button type="submit" class="primary-btn">
+                Complete Sale
+            </button>
         </form>
     `);
 
@@ -749,13 +882,13 @@ async function saveSale(event) {
 
     const form = new FormData(event.target);
 
-    const product = products.find(
-        item => String(item.id) === String(form.get("product_id"))
+    const product = products.find(item =>
+        String(item.id) === String(form.get("product_id"))
     );
 
     const quantity = Number(form.get("quantity"));
 
-    if (!product || quantity <= 0) {
+    if (!product || !Number.isInteger(quantity) || quantity <= 0) {
         return notify("Select a valid product and quantity.", "error");
     }
 
@@ -763,14 +896,15 @@ async function saveSale(event) {
         return notify("Insufficient stock.", "error");
     }
 
-    const customer = customers.find(
-        item => String(item.id) === String(form.get("customer_id"))
+    const customer = customers.find(item =>
+        String(item.id) === String(form.get("customer_id"))
     );
 
     const total = quantity * Number(product.selling_price);
     const invoice = "NOKA-" + Date.now();
 
     try {
+        // Create sale record.
         const { data: sale, error: saleError } = await db
             .from("sales")
             .insert({
@@ -786,6 +920,7 @@ async function saveSale(event) {
 
         if (saleError) throw saleError;
 
+        // Create sale item.
         const { error: itemError } = await db
             .from("sale_items")
             .insert({
@@ -800,13 +935,17 @@ async function saveSale(event) {
 
         if (itemError) throw itemError;
 
+        // Update product stock.
         const { error: stockError } = await db
             .from("products")
-            .update({ quantity: Number(product.quantity) - quantity })
+            .update({
+                quantity: Number(product.quantity) - quantity
+            })
             .eq("id", product.id);
 
         if (stockError) throw stockError;
 
+        // Record stock movement.
         const { error: movementError } = await db
             .from("stock_movements")
             .insert({
@@ -829,53 +968,18 @@ async function saveSale(event) {
         ]);
 
         updateDashboard();
+
         notify("Sale completed. Invoice: " + invoice);
 
     } catch (error) {
-        notify(error.message, "error");
+        notify(
+            "Sale could not be fully completed: " + error.message,
+            "error"
+        );
     }
 }
 
-// EXPORT PRODUCTS CSV
-function exportProducts() {
-    if (!products.length) return notify("No products to export.", "error");
-
-    const headers = [
-        "Name", "SKU", "Category", "Quantity",
-        "Cost Price", "Selling Price"
-    ];
-
-    const rows = products.map(item => [
-        item.name,
-        item.sku,
-        item.category,
-        item.quantity,
-        item.cost_price,
-        item.selling_price
-    ]);
-
-    downloadCSV([headers, ...rows], "noka-products.csv");
-}
-
-// EXPORT SALES CSV
-function exportSales() {
-    if (!sales.length) return notify("No sales to export.", "error");
-
-    const headers = [
-        "Invoice", "Customer", "Total", "Payment Method", "Date"
-    ];
-
-    const rows = sales.map(item => [
-        item.invoice_number,
-        item.customer_name,
-        item.total_amount,
-        item.payment_method,
-        item.created_at
-    ]);
-
-    downloadCSV([headers, ...rows], "noka-sales.csv");
-}
-
+// CSV EXPORT
 function downloadCSV(rows, filename) {
     const csv = rows.map(row =>
         row.map(value =>
@@ -892,33 +996,93 @@ function downloadCSV(rows, filename) {
 
     link.href = url;
     link.download = filename;
+
+    document.body.appendChild(link);
     link.click();
+    link.remove();
 
     URL.revokeObjectURL(url);
-    notify("File exported successfully.");
+}
+
+function exportProducts() {
+    if (!products.length) {
+        return notify("No products to export.", "error");
+    }
+
+    const headers = [
+        "Name",
+        "SKU",
+        "Category",
+        "Quantity",
+        "Cost Price",
+        "Selling Price"
+    ];
+
+    const rows = products.map(item => [
+        item.name,
+        item.sku,
+        item.category,
+        item.quantity,
+        item.cost_price,
+        item.selling_price
+    ]);
+
+    downloadCSV([headers, ...rows], "noka-products.csv");
+    notify("Products exported successfully.");
+}
+
+function exportSales() {
+    if (!sales.length) {
+        return notify("No sales to export.", "error");
+    }
+
+    const headers = [
+        "Invoice",
+        "Customer",
+        "Total",
+        "Payment Method",
+        "Date"
+    ];
+
+    const rows = sales.map(item => [
+        item.invoice_number,
+        item.customer_name,
+        item.total_amount,
+        item.payment_method,
+        item.created_at
+    ]);
+
+    downloadCSV([headers, ...rows], "noka-sales.csv");
+    notify("Sales exported successfully.");
 }
 
 // REPORTS
 function showProductReport() {
     const totalValue = products.reduce(
         (sum, item) =>
-            sum + Number(item.quantity || 0) * Number(item.cost_price || 0),
+            sum + Number(item.quantity || 0) *
+            Number(item.cost_price || 0),
         0
     );
 
-    const low = products.filter(
-        item => Number(item.quantity || 0) <= Number(item.min_stock || 5)
+    const low = products.filter(item =>
+        Number(item.quantity || 0) <= Number(item.min_stock ?? 5)
     );
 
     openModal("Product Report", `
         <div class="report-content">
             <h3>Total Products: ${products.length}</h3>
+
             <h3>Total Stock: ${products.reduce(
                 (sum, item) => sum + Number(item.quantity || 0), 0
             )}</h3>
+
             <h3>Stock Cost Value: ${money(totalValue)}</h3>
+
             <h3>Low Stock Products: ${low.length}</h3>
-            <button class="btn-primary" onclick="exportProducts()">
+
+            <button class="primary-btn" type="button"
+                onclick="exportProducts()">
                 Export Product CSV
             </button>
         </div>
@@ -927,14 +1091,18 @@ function showProductReport() {
 
 function showSalesReport() {
     const total = sales.reduce(
-        (sum, item) => sum + Number(item.total_amount || 0), 0
+        (sum, item) => sum + Number(item.total_amount || 0),
+        0
     );
 
     openModal("Sales Report", `
         <div class="report-content">
             <h3>Total Sales Records: ${sales.length}</h3>
+
             <h3>Total Recorded Sales: ${money(total)}</h3>
-            <button class="btn-primary" onclick="exportSales()">
+
+            <button class="primary-btn" type="button"
+                onclick="exportSales()">
                 Export Sales CSV
             </button>
         </div>
@@ -944,6 +1112,7 @@ function showSalesReport() {
 // EVENT LISTENERS
 document.addEventListener("DOMContentLoaded", () => {
 
+    // Login
     $("loginForm")?.addEventListener("submit", event => {
         event.preventDefault();
 
@@ -953,12 +1122,17 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
+    // Logout
     $("logoutBtn")?.addEventListener("click", logout);
 
+    // Navigation
     document.querySelectorAll("[data-page]").forEach(item => {
-        item.addEventListener("click", () => navigate(item.dataset.page));
+        item.addEventListener("click", () => {
+            navigate(item.dataset.page);
+        });
     });
 
+    // Products
     $("addProductBtn")?.addEventListener("click", () => productForm());
 
     $("productSearch")?.addEventListener("input", event => {
@@ -967,35 +1141,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $("exportProductsBtn")?.addEventListener("click", exportProducts);
 
+    // Stock
     $("stockMovementBtn")?.addEventListener("click", stockForm);
 
+    // Sales
     $("newSaleBtn")?.addEventListener("click", saleForm);
 
+    // Customers
     $("addCustomerBtn")?.addEventListener("click", customerForm);
 
+    // Suppliers
     $("addSupplierBtn")?.addEventListener("click", supplierForm);
 
+    // Reports
     $("productReportBtn")?.addEventListener("click", showProductReport);
 
     $("salesReportBtn")?.addEventListener("click", showSalesReport);
 
+    // Modal close
     $("closeModal")?.addEventListener("click", closeModal);
 
     $("modalOverlay")?.addEventListener("click", event => {
-        if (event.target.id === "modalOverlay") closeModal();
+        if (event.target.id === "modalOverlay") {
+            closeModal();
+        }
     });
 
+    // Table actions
     document.addEventListener("click", event => {
         const button = event.target.closest("[data-action]");
+
         if (!button) return;
 
         const id = button.dataset.id;
 
         switch (button.dataset.action) {
+
             case "edit-product": {
-                const item = products.find(
-                    product => String(product.id) === String(id)
+                const item = products.find(product =>
+                    String(product.id) === String(id)
                 );
+
                 if (item) productForm(item);
                 break;
             }
@@ -1014,5 +1200,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Start application
     checkSession();
 });
