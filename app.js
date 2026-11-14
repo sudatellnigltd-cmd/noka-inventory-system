@@ -6,7 +6,7 @@
 
 // SUPABASE CONFIGURATION
 const SUPABASE_URL = "https://rqrmwylvthuxpheuorwv.supabase.co";
-const SUPABASE_KEY = "Sb_publishable_LiKJxswpoRMhpzBSblOKYA_bs_y3cjk";
+const SUPABASE_KEY = "sb_publishable_LiKJxswpoRMhpzBSblOKYA_bs_y3cjk";
 
 let db = null;
 
