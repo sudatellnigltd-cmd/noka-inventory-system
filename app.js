@@ -1,4 +1,3 @@
-
 /* =====================================================
    NOKA INVENTORY MANAGEMENT SYSTEM
    Developer: SUDATELL NIG LIMITED
@@ -7,7 +6,7 @@
 
 // SUPABASE CONFIGURATION
 const SUPABASE_URL = "https://rqrmwylvthuxpheuorwv.supabase.co";
-const SUPABASE_KEY = "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY";
+const SUPABASE_KEY = "Sb_publishable_LiKJxswpoRMhpzBSblOKYA_bs_y3cjk";
 
 let db = null;
 
