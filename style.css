@@ -1,512 +1,836 @@
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#123d32">
-  <meta name="description" content="NOKA Inventory Management System by SUDATELL NIG LIMITED">
-  <title>NOKA Inventory System</title>
-
-  <link rel="stylesheet" href="style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-
-<body>
-
-  <!-- LOGIN PAGE -->
-  <section id="loginPage" class="login-page">
-    <div class="login-card">
-      <div class="brand-logo">
-        <i class="fa-solid fa-boxes-stacked"></i>
-      </div>
-
-      <h1>NOKA</h1>
-      <p class="brand-subtitle">Inventory Management System</p>
-
-      <form id="loginForm">
-        <label>Email Address</label>
-        <input id="loginEmail" type="email" placeholder="Enter your email" required>
-
-        <label>Password</label>
-        <input id="loginPassword" type="password" placeholder="Enter password" required>
-
-        <button type="submit" class="primary-btn">
-          <i class="fa-solid fa-lock"></i> Sign In
-        </button>
-      </form>
-
-      <p id="loginMessage" class="message"></p>
-
-      <div class="login-footer">
-        Developed by <strong>SUDATELL NIG LIMITED</strong>
-      </div>
-    </div>
-  </section>
-
-  <!-- APPLICATION -->
-  <div id="appPage" class="app-layout" hidden>
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-brand">
-        <div class="small-logo">
-          <i class="fa-solid fa-boxes-stacked"></i>
-        </div>
-        <div>
-          <h2>NOKA</h2>
-          <span>Inventory System</span>
-        </div>
-      </div>
-
-      <div class="nav-label">MAIN MENU</div>
-
-      <nav class="navigation">
-        <button class="nav-item active" data-page="dashboard">
-          <i class="fa-solid fa-chart-pie"></i>
-          Dashboard
-        </button>
-
-        <button class="nav-item" data-page="products">
-          <i class="fa-solid fa-box"></i>
-          Products
-        </button>
-
-        <button class="nav-item" data-page="stock">
-          <i class="fa-solid fa-warehouse"></i>
-          Stock Movements
-        </button>
-
-        <button class="nav-item" data-page="sales">
-          <i class="fa-solid fa-cart-shopping"></i>
-          Sales
-        </button>
-
-        <button class="nav-item" data-page="customers">
-          <i class="fa-solid fa-users"></i>
-          Customers
-        </button>
-
-        <button class="nav-item" data-page="suppliers">
-          <i class="fa-solid fa-truck"></i>
-          Suppliers
-        </button>
-
-        <button class="nav-item" data-page="reports">
-          <i class="fa-solid fa-chart-line"></i>
-          Reports
-        </button>
-
-        <div class="nav-label">SYSTEM</div>
-
-        <button class="nav-item" data-page="settings">
-          <i class="fa-solid fa-gear"></i>
-          Settings
-        </button>
-
-        <button class="nav-item logout-btn" id="logoutBtn">
-          <i class="fa-solid fa-right-from-bracket"></i>
-          Logout
-        </button>
-      </nav>
-
-      <div class="sidebar-footer">
-        <span>NOKA v1.0</span>
-        <small>© SUDATELL NIG LIMITED</small>
-      </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="main-content">
-
-      <header class="topbar">
-        <div class="topbar-left">
-          <button id="menuToggle" class="menu-toggle">
-            <i class="fa-solid fa-bars"></i>
-          </button>
-
-          <div>
-            <h2 id="pageTitle">Dashboard</h2>
-            <p>Welcome to NOKA Inventory System</p>
-          </div>
-        </div>
-
-        <div class="topbar-right">
-          <span class="online-status">
-            <i class="fa-solid fa-circle"></i> System
-          </span>
-
-          <div class="user-profile">
-            <div class="avatar">
-              <i class="fa-solid fa-user"></i>
-            </div>
-            <div>
-              <strong id="userName">Admin</strong>
-              <small id="userRole">Administrator</small>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div class="content-area">
-
-        <!-- DASHBOARD -->
-        <section class="page-section" id="dashboardPage">
-
-          <div class="welcome-banner">
-            <div>
-              <span>INVENTORY OVERVIEW</span>
-              <h1>Business Dashboard</h1>
-              <p>Monitor your products, stock and business activities.</p>
-            </div>
-
-            <i class="fa-solid fa-chart-column banner-icon"></i>
-          </div>
-
-          <div class="stats-grid">
-
-            <div class="stat-card">
-              <div class="stat-icon green">
-                <i class="fa-solid fa-boxes-stacked"></i>
-              </div>
-              <div>
-                <p>Total Products</p>
-                <h2 id="totalProducts">0</h2>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon blue">
-                <i class="fa-solid fa-warehouse"></i>
-              </div>
-              <div>
-                <p>Total Stock Units</p>
-                <h2 id="totalStock">0</h2>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon orange">
-                <i class="fa-solid fa-cart-shopping"></i>
-              </div>
-              <div>
-                <p>Total Sales</p>
-                <h2 id="totalSales">₦0</h2>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon red">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-              </div>
-              <div>
-                <p>Low Stock Items</p>
-                <h2 id="lowStock">0</h2>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="section-heading">
-            <h2>Quick Actions</h2>
-          </div>
-
-          <div class="quick-actions">
-            <button class="action-card" data-page="products">
-              <i class="fa-solid fa-plus"></i>
-              <span>Add Product</span>
-            </button>
-
-            <button class="action-card" data-page="sales">
-              <i class="fa-solid fa-cash-register"></i>
-              <span>New Sale</span>
-            </button>
-
-            <button class="action-card" data-page="stock">
-              <i class="fa-solid fa-arrow-right-arrow-left"></i>
-              <span>Stock Movement</span>
-            </button>
-
-            <button class="action-card" data-page="reports">
-              <i class="fa-solid fa-file-export"></i>
-              <span>View Reports</span>
-            </button>
-          </div>
-
-          <div class="section-heading">
-            <h2>Recent Products</h2>
-            <button class="text-btn" data-page="products">View All</button>
-          </div>
-
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>SKU</th>
-                  <th>Quantity</th>
-                  <th>Price</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="recentProducts">
-                <tr>
-                  <td colspan="5" class="empty-state">
-                    No products added yet.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-        </section>
-
-        <!-- PRODUCTS -->
-        <section class="page-section" id="productsPage" hidden>
-          <div class="page-heading">
-            <div>
-              <h1>Products</h1>
-              <p>Manage your inventory products.</p>
-            </div>
-
-            <button class="primary-btn" id="addProductBtn">
-              <i class="fa-solid fa-plus"></i> Add Product
-            </button>
-          </div>
-
-          <div class="toolbar">
-            <input type="search" id="productSearch" placeholder="Search products...">
-            <button class="secondary-btn" id="exportProductsBtn">
-              <i class="fa-solid fa-download"></i> Export CSV
-            </button>
-          </div>
-
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product Name</th>
-                  <th>SKU</th>
-                  <th>Category</th>
-                  <th>Quantity</th>
-                  <th>Cost Price</th>
-                  <th>Selling Price</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="productsTable">
-                <tr>
-                  <td colspan="7" class="empty-state">No products available.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- STOCK -->
-        <section class="page-section" id="stockPage" hidden>
-          <div class="page-heading">
-            <div>
-              <h1>Stock Movements</h1>
-              <p>Record stock additions and removals.</p>
-            </div>
-
-            <button class="primary-btn" id="stockMovementBtn">
-              <i class="fa-solid fa-plus"></i> New Movement
-            </button>
-          </div>
-
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Product</th>
-                  <th>Movement</th>
-                  <th>Quantity</th>
-                  <th>Note</th>
-                </tr>
-              </thead>
-              <tbody id="stockTable">
-                <tr>
-                  <td colspan="5" class="empty-state">No stock movements yet.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- SALES -->
-        <section class="page-section" id="salesPage" hidden>
-          <div class="page-heading">
-            <div>
-              <h1>Sales</h1>
-              <p>Manage your business sales.</p>
-            </div>
-
-            <button class="primary-btn" id="newSaleBtn">
-              <i class="fa-solid fa-plus"></i> New Sale
-            </button>
-          </div>
-
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Invoice</th>
-                  <th>Customer</th>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="salesTable">
-                <tr>
-                  <td colspan="5" class="empty-state">No sales recorded yet.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- CUSTOMERS -->
-        <section class="page-section" id="customersPage" hidden>
-          <div class="page-heading">
-            <div>
-              <h1>Customers</h1>
-              <p>Manage your customer records.</p>
-            </div>
-
-            <button class="primary-btn" id="addCustomerBtn">
-              <i class="fa-solid fa-plus"></i> Add Customer
-            </button>
-          </div>
-
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Email</th>
-                  <th>Address</th>
-                </tr>
-              </thead>
-              <tbody id="customersTable">
-                <tr>
-                  <td colspan="4" class="empty-state">No customers available.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- SUPPLIERS -->
-        <section class="page-section" id="suppliersPage" hidden>
-          <div class="page-heading">
-            <div>
-              <h1>Suppliers</h1>
-              <p>Manage your suppliers.</p>
-            </div>
-
-            <button class="primary-btn" id="addSupplierBtn">
-              <i class="fa-solid fa-plus"></i> Add Supplier
-            </button>
-          </div>
-
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Supplier</th>
-                  <th>Phone</th>
-                  <th>Email</th>
-                  <th>Address</th>
-                </tr>
-              </thead>
-              <tbody id="suppliersTable">
-                <tr>
-                  <td colspan="4" class="empty-state">No suppliers available.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- REPORTS -->
-        <section class="page-section" id="reportsPage" hidden>
-          <div class="page-heading">
-            <div>
-              <h1>Reports</h1>
-              <p>Business and inventory reports.</p>
-            </div>
-          </div>
-
-          <div class="report-grid">
-            <div class="report-card">
-              <i class="fa-solid fa-box"></i>
-              <h3>Product Report</h3>
-              <p>Review all registered products.</p>
-              <button class="secondary-btn" id="productReportBtn">Export CSV</button>
-            </div>
-
-            <div class="report-card">
-              <i class="fa-solid fa-cart-shopping"></i>
-              <h3>Sales Report</h3>
-              <p>Review recorded sales.</p>
-              <button class="secondary-btn" id="salesReportBtn">Export CSV</button>
-            </div>
-          </div>
-        </section>
-
-        <!-- SETTINGS -->
-        <section class="page-section" id="settingsPage" hidden>
-          <div class="page-heading">
-            <div>
-              <h1>Settings</h1>
-              <p>System information and configuration.</p>
-            </div>
-          </div>
-
-          <div class="settings-card">
-            <h2>NOKA Inventory System</h2>
-            <p>Version 1.0</p>
-            <p>Developer: SUDATELL NIG LIMITED</p>
-            <p>Currency: Nigerian Naira (₦)</p>
-            <p>Database: Supabase</p>
-          </div>
-        </section>
-
-      </div>
-
-      <footer class="main-footer">
-        <span>© 2026 NOKA Inventory System</span>
-        <span>Developed by SUDATELL NIG LIMITED</span>
-      </footer>
-
-    </main>
-  </div>
-
-  <!-- MODAL -->
-  <div id="modalOverlay" class="modal-overlay" hidden>
-    <div class="modal-card">
-      <div class="modal-header">
-        <h2 id="modalTitle">Add Record</h2>
-        <button id="closeModal" class="close-modal">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <div id="modalBody"></div>
-    </div>
-  </div>
-
-  <div id="toast" class="toast"></div>
-
-  <script src="app.js"></script>
-</body>
-</html>
+:root {
+  --primary: #123d32;
+  --primary-light: #1c5b49;
+  --accent: #16a879;
+  --background: #f4f7f6;
+  --surface: #ffffff;
+  --text: #1b2925;
+  --muted: #788781;
+  --border: #e6ece9;
+  --danger: #dc4444;
+  --warning: #e9a23b;
+  --shadow: 0 8px 28px rgba(18, 61, 50, .07);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--background);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+}
+
+button, input, select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* LOGIN */
+
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #092b24, #1b604b);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 410px;
+  background: white;
+  padding: 42px 34px;
+  border-radius: 22px;
+  box-shadow: 0 25px 70px rgba(0,0,0,.2);
+  text-align: center;
+}
+
+.brand-logo {
+  width: 72px;
+  height: 72px;
+  background: #e7f5ef;
+  color: var(--primary);
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  margin: 0 auto 16px;
+}
+
+.login-card h1 {
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: var(--primary);
+}
+
+.brand-subtitle {
+  color: var(--muted);
+  margin: 8px 0 30px;
+}
+
+.login-card form {
+  text-align: left;
+}
+
+.login-card label {
+  display: block;
+  font-weight: 600;
+  margin: 18px 0 8px;
+}
+
+.login-card input,
+.toolbar input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  outline: none;
+  background: #fbfdfc;
+}
+
+input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(22,168,121,.1);
+}
+
+.login-card .primary-btn {
+  width: 100%;
+  margin-top: 25px;
+}
+
+.login-footer {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-top: 28px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* BUTTONS */
+
+.primary-btn,
+.secondary-btn {
+  border: 0;
+  border-radius: 9px;
+  padding: 12px 17px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  transition: .2s;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: white;
+}
+
+.primary-btn:hover {
+  background: var(--primary-light);
+  transform: translateY(-1px);
+}
+
+.secondary-btn {
+  background: #eaf4ef;
+  color: var(--primary);
+}
+
+.secondary-btn:hover {
+  background: #dceee5;
+}
+
+.text-btn {
+  background: transparent;
+  border: 0;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* APPLICATION LAYOUT */
+
+.app-layout {
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 255px;
+  background: var(--primary);
+  color: white;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  padding: 24px 15px;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 9px 28px;
+}
+
+.small-logo {
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.15);
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.sidebar-brand h2 {
+  font-size: 21px;
+  letter-spacing: 2px;
+}
+
+.sidebar-brand span {
+  font-size: 10px;
+  color: #b9d6ca;
+}
+
+.nav-label {
+  color: #8db4a3;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  padding: 15px 12px 10px;
+}
+
+.navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.nav-item {
+  border: 0;
+  background: transparent;
+  color: #c8ddd5;
+  text-align: left;
+  padding: 13px 14px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  font-size: 13px;
+  transition: .2s;
+}
+
+.nav-item i {
+  width: 18px;
+  text-align: center;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: rgba(255,255,255,.13);
+  color: white;
+}
+
+.nav-item.active {
+  border-left: 3px solid #39d5a0;
+}
+
+.logout-btn {
+  margin-top: 15px;
+  color: #ffcccc;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 22px 12px 5px;
+  border-top: 1px solid rgba(255,255,255,.13);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #c2d8ce;
+  font-size: 11px;
+}
+
+.sidebar-footer small {
+  font-size: 9px;
+}
+
+/* MAIN */
+
+.main-content {
+  margin-left: 255px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 82px;
+  background: white;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-left,
+.topbar-right,
+.user-profile {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-left {
+  gap: 14px;
+}
+
+.topbar h2 {
+  font-size: 19px;
+}
+
+.topbar-left p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.topbar-right {
+  gap: 24px;
+}
+
+.online-status {
+  color: #249b6d;
+  font-size: 11px;
+}
+
+.online-status i {
+  font-size: 7px;
+  margin-right: 5px;
+}
+
+.user-profile {
+  gap: 10px;
+}
+
+.avatar {
+  width: 39px;
+  height: 39px;
+  background: #e5f3ec;
+  color: var(--primary);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+
+.user-profile strong,
+.user-profile small {
+  display: block;
+}
+
+.user-profile strong {
+  font-size: 12px;
+}
+
+.user-profile small {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.menu-toggle {
+  display: none;
+  border: 0;
+  background: transparent;
+  font-size: 20px;
+  color: var(--primary);
+}
+
+.content-area {
+  flex: 1;
+  padding: 30px 32px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.welcome-banner {
+  min-height: 180px;
+  background: linear-gradient(110deg, #123d32, #267b5b);
+  border-radius: 16px;
+  padding: 30px 35px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  overflow: hidden;
+}
+
+.welcome-banner span {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #bce6d2;
+  font-weight: 700;
+}
+
+.welcome-banner h1 {
+  font-size: 27px;
+  margin: 12px 0 8px;
+}
+
+.welcome-banner p {
+  color: #d0e8dc;
+  font-size: 12px;
+}
+
+.banner-icon {
+  font-size: 85px;
+  color: rgba(255,255,255,.16);
+  margin-right: 30px;
+}
+
+/* STATS */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin: 25px 0 32px;
+}
+
+.stat-card {
+  background: white;
+  padding: 21px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: var(--shadow);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+}
+
+.stat-icon.green {
+  color: #15996b;
+  background: #e5f6ed;
+}
+
+.stat-icon.blue {
+  color: #3778c8;
+  background: #e9f1ff;
+}
+
+.stat-icon.orange {
+  color: #d88b25;
+  background: #fff4e3;
+}
+
+.stat-icon.red {
+  color: #d74b4b;
+  background: #fff0ef;
+}
+
+.stat-card p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.stat-card h2 {
+  font-size: 23px;
+  font-weight: 800;
+}
+
+/* SECTIONS */
+
+.section-heading,
+.page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 17px;
+}
+
+.section-heading h2 {
+  font-size: 16px;
+}
+
+.page-heading {
+  margin-bottom: 25px;
+}
+
+.page-heading h1 {
+  font-size: 23px;
+  margin-bottom: 7px;
+}
+
+.page-heading p {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  margin-bottom: 32px;
+}
+
+.action-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 21px 12px;
+  color: var(--primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  transition: .2s;
+}
+
+.action-card i {
+  font-size: 22px;
+  color: var(--accent);
+}
+
+.action-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+}
+
+/* TABLES */
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 650px;
+}
+
+thead {
+  background: #f7faf8;
+}
+
+th {
+  color: #65766f;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  padding: 16px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+td {
+  padding: 16px;
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 35px;
+  color: var(--muted);
+}
+
+/* TOOLBAR */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 18px;
+}
+
+.toolbar input {
+  max-width: 340px;
+}
+
+/* REPORTS */
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.report-card,
+.settings-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 25px;
+  box-shadow: var(--shadow);
+}
+
+.report-card > i {
+  font-size: 25px;
+  color: var(--accent);
+  margin-bottom: 18px;
+}
+
+.report-card h3 {
+  margin-bottom: 9px;
+}
+
+.report-card p,
+.settings-card p {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 17px;
+}
+
+.settings-card h2 {
+  margin-bottom: 20px;
+  color: var(--primary);
+}
+
+/* MODAL */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(5,25,19,.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 23px;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+}
+
+.close-modal {
+  border: 0;
+  background: #f1f5f3;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 16px;
+}
+
+.message {
+  font-size: 12px;
+  margin-top: 12px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background: var(--primary);
+  color: white;
+  padding: 13px 20px;
+  border-radius: 9px;
+  box-shadow: var(--shadow);
+  z-index: 200;
+  display: none;
+}
+
+.main-footer {
+  padding: 20px 32px;
+  border-top: 1px solid var(--border);
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .topbar {
+    height: 72px;
+    padding: 0 16px;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .topbar-right {
+    gap: 10px;
+  }
+
+  .online-status {
+    display: none;
+  }
+
+  .user-profile small {
+    display: none;
+  }
+
+  .content-area {
+    padding: 20px 15px;
+  }
+
+  .welcome-banner {
+    padding: 24px 20px;
+    min-height: 155px;
+  }
+
+  .welcome-banner h1 {
+    font-size: 21px;
+  }
+
+  .banner-icon {
+    font-size: 55px;
+    margin-right: 0;
+  }
+
+  .stats-grid {
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 15px 10px;
+    gap: 9px;
+  }
+
+  .stat-icon {
+    width: 37px;
+    height: 37px;
+    font-size: 15px;
+  }
+
+  .stat-card h2 {
+    font-size: 19px;
+  }
+
+  .stat-card p {
+    font-size: 10px;
+  }
+
+  .quick-actions {
+    gap: 10px;
+  }
+
+  .action-card {
+    padding: 17px 8px;
+  }
+
+  .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .toolbar input {
+    max-width: none;
+  }
+
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main-footer {
+    padding: 17px 15px;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 380px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-banner h1 {
+    font-size: 19px;
+  }
+
+  .login-card {
+    padding: 30px 22px;
+  }
+}
