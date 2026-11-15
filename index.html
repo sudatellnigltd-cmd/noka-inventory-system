@@ -7,25 +7,186 @@
   <meta name="theme-color" content="#0b6b45">
   <meta name="description" content="NOKA Inventory Management System by SUDATELL NIG LIMITED">
   <title>NOKA Inventory System</title>
+
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    .hidden { display: none !important; }
+
+    .auth-logo {
+      width: 110px;
+      height: 90px;
+      object-fit: contain;
+      margin: 0 auto 12px;
+      display: block;
+    }
+
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .auth-switch {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .auth-switch button,
+    .forgot-link {
+      border: none;
+      background: none;
+      color: #0b6b45;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 6px;
+    }
+
+    .password-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-wrap input {
+      width: 100%;
+      padding-right: 48px;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 10px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 19px;
+      padding: 6px;
+    }
+
+    .password-rules {
+      font-size: 11px;
+      color: #777;
+      margin-top: 6px;
+      line-height: 1.7;
+    }
+
+    .terms-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      margin: 14px 0;
+    }
+
+    .terms-row input {
+      margin-top: 3px;
+    }
+
+    .auth-message {
+      font-size: 13px;
+      margin-top: 12px;
+      text-align: center;
+    }
+
+    .auth-hero {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .auth-hero h1 {
+      margin-bottom: 5px;
+    }
+
+    .coming-soon {
+      background: linear-gradient(135deg,#071c35,#0b6b45);
+      color: white;
+      border-radius: 18px;
+      padding: 25px;
+      margin-bottom: 25px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .coming-soon h2 {
+      font-size: 27px;
+      margin: 10px 0;
+    }
+
+    .coming-soon .soon-label {
+      display: inline-block;
+      background: #ff9c32;
+      color: #17202b;
+      padding: 7px 13px;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 11px;
+    }
+
+    .company-section {
+      margin-top: 30px;
+      padding: 25px;
+      border-radius: 18px;
+      background: white;
+      text-align: center;
+    }
+
+    .developer-avatar {
+      font-size: 65px;
+      margin: 10px;
+    }
+
+    .company-contact {
+      color: #0b6b45;
+      font-weight: 800;
+      text-decoration: none;
+    }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+      gap: 12px;
+      margin-top: 15px;
+    }
+
+    .service-item {
+      padding: 15px;
+      background: #f1f8f4;
+      border-radius: 12px;
+      font-weight: 600;
+      text-align: center;
+    }
+  </style>
 </head>
 
 <body>
 
-  <!-- LOGIN PAGE -->
-  <section id="loginPage" class="login-page">
-    <div class="login-card">
+<!-- ================= LOGIN ================= -->
+
+<section id="loginPage" class="login-page">
+  <div class="login-card">
+
+    <div class="auth-hero">
       <div class="brand-logo">
-        <span>N</span>
+        <img src="assets/noka-logo.png" alt="NOKA Logo">
       </div>
 
       <h1>NOKA Inventory</h1>
       <p>Inventory Management System</p>
+    </div>
+
+    <!-- LOGIN FORM -->
+
+    <div id="loginPanel">
+
+      <h2>Welcome Back</h2>
+      <p>Sign in to your account</p>
 
       <form id="loginForm">
+
         <div class="form-group">
           <label for="loginEmail">Email Address</label>
           <input
@@ -39,462 +200,877 @@
 
         <div class="form-group">
           <label for="loginPassword">Password</label>
-          <input
-            type="password"
-            id="loginPassword"
-            placeholder="Enter your password"
-            autocomplete="current-password"
-            required
-          >
+
+          <div class="password-wrap">
+            <input
+              type="password"
+              id="loginPassword"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            >
+
+            <button
+              type="button"
+              class="password-toggle"
+              data-target="loginPassword"
+              aria-label="Show password"
+            >👁️</button>
+          </div>
         </div>
+
+        <button type="button" class="forgot-link" onclick="showAuthPanel('resetPanel')">
+          Forgot Password?
+        </button>
 
         <button type="submit" class="primary-btn">
           Sign In
         </button>
 
-        <p id="loginMessage" role="alert"></p>
+        <p id="loginMessage" class="auth-message" role="alert"></p>
+
       </form>
 
-      <div class="login-footer">
-        Powered by SUDATELL NIG LIMITED
+      <div class="auth-switch">
+        Don't have an account?
+        <button type="button" onclick="showAuthPanel('registerPanel')">
+          Create Account
+        </button>
       </div>
+
     </div>
-  </section>
 
+    <!-- REGISTRATION FORM -->
 
-  <!-- MAIN APPLICATION -->
-  <div id="appPage" class="app-layout hidden">
+    <div id="registerPanel" class="hidden">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <div class="small-logo">N</div>
-        <div>
-          <h2>NOKA</h2>
-          <small>Inventory System</small>
-        </div>
-      </div>
+      <h2>Create Your Account</h2>
+      <p>Register for NOKA Inventory</p>
 
-      <nav class="navigation">
+      <form id="registerForm">
 
-        <button class="nav-item active" data-page="dashboard">
-          <span>▦</span> Dashboard
-        </button>
-
-        <button class="nav-item" data-page="products">
-          <span>▤</span> Products
-        </button>
-
-        <button class="nav-item" data-page="stock">
-          <span>▣</span> Stock Management
-        </button>
-
-        <button class="nav-item" data-page="sales">
-          <span>▧</span> Sales
-        </button>
-
-        <button class="nav-item" data-page="customers">
-          <span>♙</span> Customers
-        </button>
-
-        <button class="nav-item" data-page="suppliers">
-          <span>♧</span> Suppliers
-        </button>
-
-        <button class="nav-item" data-page="reports">
-          <span>▥</span> Reports
-        </button>
-
-        <button class="nav-item" data-page="settings">
-          <span>⚙</span> Settings
-        </button>
-
-      </nav>
-
-      <div class="sidebar-bottom">
-        <button id="logoutBtn" class="nav-item logout-btn">
-          <span>↪</span> Logout
-        </button>
-
-        <small>© SUDATELL NIG LIMITED</small>
-      </div>
-    </aside>
-
-
-    <!-- MAIN CONTENT -->
-    <main class="content-area">
-
-      <header class="topbar">
-        <div>
-          <h1 id="pageTitle">Dashboard</h1>
-          <p>Welcome to NOKA Inventory Management</p>
+        <div class="form-group">
+          <label for="registerName">Full Name</label>
+          <input
+            type="text"
+            id="registerName"
+            placeholder="Enter your full name"
+            autocomplete="name"
+            required
+          >
         </div>
 
-        <div class="topbar-right">
-          <span class="system-label">Inventory System</span>
-        </div>
-      </header>
-
-
-      <!-- DASHBOARD -->
-      <section id="page-dashboard" class="page-content">
-
-        <div class="welcome-banner">
-          <div>
-            <h2>Welcome to NOKA</h2>
-            <p>Manage your products, stock and sales in one place.</p>
-          </div>
+        <div class="form-group">
+          <label for="registerCompany">Company Name</label>
+          <input
+            type="text"
+            id="registerCompany"
+            placeholder="Enter company name"
+            autocomplete="organization"
+            required
+          >
         </div>
 
-        <div class="stats-grid">
-
-          <div class="stat-card">
-            <span>Total Products</span>
-            <h2 id="totalProducts">0</h2>
-          </div>
-
-          <div class="stat-card">
-            <span>Total Stock</span>
-            <h2 id="totalStock">0</h2>
-          </div>
-
-          <div class="stat-card">
-            <span>Total Sales</span>
-            <h2 id="totalSales">₦0.00</h2>
-          </div>
-
-          <div class="stat-card">
-            <span>Low Stock Items</span>
-            <h2 id="lowStock">0</h2>
-          </div>
-
+        <div class="form-group">
+          <label for="registerEmail">Email Address</label>
+          <input
+            type="email"
+            id="registerEmail"
+            placeholder="Enter email address"
+            autocomplete="email"
+            required
+          >
         </div>
 
-        <div class="content-card">
-          <div class="section-heading">
-            <h2>Recent Products</h2>
-          </div>
-
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product Name</th>
-                  <th>SKU</th>
-                  <th>Category</th>
-                  <th>Quantity</th>
-                </tr>
-              </thead>
-              <tbody id="recentProducts">
-                <tr>
-                  <td colspan="4">No products available</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+        <div class="form-group">
+          <label for="registerPhone">Phone Number</label>
+          <input
+            type="tel"
+            id="registerPhone"
+            placeholder="Enter phone number"
+            autocomplete="tel"
+            required
+          >
         </div>
 
-      </section>
+        <div class="form-group">
+          <label for="registerPassword">Password</label>
 
-
-      <!-- PRODUCTS -->
-      <section id="page-products" class="page-content hidden">
-
-        <div class="section-heading">
-          <div>
-            <h2>Products Management</h2>
-            <p>Manage your inventory products.</p>
-          </div>
-
-          <div class="action-buttons">
-            <button id="exportProductsBtn" class="secondary-btn">
-              Export Products
-            </button>
-
-            <button id="stockMovementBtn" class="secondary-btn">
-              Stock Movement
-            </button>
-
-            <button id="addProductBtn" class="primary-btn">
-              + Add Product
-            </button>
-          </div>
-        </div>
-
-        <div class="content-card">
-
-          <div class="search-box">
+          <div class="password-wrap">
             <input
-              type="search"
-              id="productSearch"
-              placeholder="Search products..."
+              type="password"
+              id="registerPassword"
+              placeholder="Create a strong password"
+              minlength="8"
+              autocomplete="new-password"
+              required
             >
+
+            <button
+              type="button"
+              class="password-toggle"
+              data-target="registerPassword"
+            >👁️</button>
           </div>
 
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product Name</th>
-                  <th>SKU</th>
-                  <th>Category</th>
-                  <th>Quantity</th>
-                  <th>Cost Price</th>
-                  <th>Selling Price</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-
-              <tbody id="productsTable">
-                <tr>
-                  <td colspan="7">Loading products...</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-      </section>
-
-
-      <!-- STOCK -->
-      <section id="page-stock" class="page-content hidden">
-
-        <div class="section-heading">
-          <div>
-            <h2>Stock Management</h2>
-            <p>Monitor stock movements and inventory levels.</p>
+          <div class="password-rules">
+            Password must contain:
+            <br>✓ At least 8 characters
+            <br>✓ One uppercase letter
+            <br>✓ One lowercase letter
+            <br>✓ One number
+            <br>✓ One special character
           </div>
         </div>
 
-        <div class="content-card">
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Movement Type</th>
-                  <th>Quantity</th>
-                  <th>Notes</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
 
-              <tbody id="stockTable">
-                <tr>
-                  <td colspan="5">No stock movements available</td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="password-wrap">
+            <input
+              type="password"
+              id="confirmPassword"
+              placeholder="Confirm your password"
+              minlength="8"
+              autocomplete="new-password"
+              required
+            >
+
+            <button
+              type="button"
+              class="password-toggle"
+              data-target="confirmPassword"
+            >👁️</button>
           </div>
         </div>
 
-      </section>
+        <label class="terms-row">
+          <input type="checkbox" id="acceptTerms" required>
+          <span>
+            I agree to the Terms of Service and Privacy Policy.
+          </span>
+        </label>
 
+        <button type="submit" class="primary-btn">
+          Create Account
+        </button>
 
-      <!-- SALES -->
-      <section id="page-sales" class="page-content hidden">
+        <p id="registerMessage" class="auth-message" role="alert"></p>
 
-        <div class="section-heading">
-          <div>
-            <h2>Sales Management</h2>
-            <p>View and manage your sales transactions.</p>
-          </div>
+      </form>
 
-          <button id="newSaleBtn" class="primary-btn">
-            + New Sale
-          </button>
-        </div>
-
-        <div class="content-card">
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Invoice</th>
-                  <th>Customer</th>
-                  <th>Total</th>
-                  <th>Payment Method</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-
-              <tbody id="salesTable">
-                <tr>
-                  <td colspan="5">No sales available</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </section>
-
-
-      <!-- CUSTOMERS -->
-      <section id="page-customers" class="page-content hidden">
-
-        <div class="section-heading">
-          <div>
-            <h2>Customers</h2>
-            <p>Manage your customer records.</p>
-          </div>
-
-          <button id="addCustomerBtn" class="primary-btn">
-            + Add Customer
-          </button>
-        </div>
-
-        <div class="content-card">
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Email</th>
-                  <th>Address</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-
-              <tbody id="customersTable">
-                <tr>
-                  <td colspan="5">No customers available</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </section>
-
-
-      <!-- SUPPLIERS -->
-      <section id="page-suppliers" class="page-content hidden">
-
-        <div class="section-heading">
-          <div>
-            <h2>Suppliers</h2>
-            <p>Manage your supplier information.</p>
-          </div>
-
-          <button id="addSupplierBtn" class="primary-btn">
-            + Add Supplier
-          </button>
-        </div>
-
-        <div class="content-card">
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Email</th>
-                  <th>Address</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-
-              <tbody id="suppliersTable">
-                <tr>
-                  <td colspan="5">No suppliers available</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </section>
-
-
-      <!-- REPORTS -->
-      <section id="page-reports" class="page-content hidden">
-
-        <div class="section-heading">
-          <div>
-            <h2>Reports</h2>
-            <p>Generate inventory and sales reports.</p>
-          </div>
-        </div>
-
-        <div class="report-grid">
-
-          <div class="content-card">
-            <h3>Product Report</h3>
-            <p>Export your product inventory information.</p>
-            <button id="productReportBtn" class="primary-btn">
-              Product Report
-            </button>
-          </div>
-
-          <div class="content-card">
-            <h3>Sales Report</h3>
-            <p>Export your sales transaction information.</p>
-            <button id="salesReportBtn" class="primary-btn">
-              Sales Report
-            </button>
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- SETTINGS -->
-      <section id="page-settings" class="page-content hidden">
-
-        <div class="section-heading">
-          <div>
-            <h2>Settings</h2>
-            <p>Application information and account settings.</p>
-          </div>
-        </div>
-
-        <div class="content-card">
-          <h3>NOKA Inventory System</h3>
-          <p>Inventory Management System</p>
-          <p><strong>Developer:</strong> SUDATELL NIG LIMITED</p>
-          <p><strong>Database:</strong> Supabase</p>
-          <p><strong>Hosting:</strong> GitHub Pages</p>
-        </div>
-
-      </section>
-
-      <footer class="app-footer">
-        NOKA Inventory System · Developed by SUDATELL NIG LIMITED
-      </footer>
-
-    </main>
-  </div>
-
-
-  <!-- MODAL -->
-  <div id="modalOverlay" class="modal-overlay hidden">
-    <div class="modal-box">
-
-      <div class="modal-header">
-        <h2 id="modalTitle">Details</h2>
-
-        <button id="closeModal" type="button" aria-label="Close">
-          &times;
+      <div class="auth-switch">
+        Already have an account?
+        <button type="button" onclick="showAuthPanel('loginPanel')">
+          Sign In
         </button>
       </div>
 
-      <div id="modalBody" class="modal-body"></div>
+    </div>
+
+    <!-- FORGOT PASSWORD -->
+
+    <div id="resetPanel" class="hidden">
+
+      <h2>Forgot Password?</h2>
+      <p>Enter your email to request a password reset link.</p>
+
+      <form id="resetPasswordForm">
+
+        <div class="form-group">
+          <label for="resetEmail">Email Address</label>
+          <input
+            type="email"
+            id="resetEmail"
+            placeholder="Enter your registered email"
+            required
+          >
+        </div>
+
+        <button type="submit" class="primary-btn">
+          Send Reset Link
+        </button>
+
+        <p id="resetMessage" class="auth-message" role="alert"></p>
+
+      </form>
+
+      <div class="auth-switch">
+        Remember your password?
+        <button type="button" onclick="showAuthPanel('loginPanel')">
+          Back to Login
+        </button>
+      </div>
 
     </div>
+
+    <div class="login-footer">
+      Powered by SUDATELL NIG LIMITED
+    </div>
+
   </div>
+</section>
 
 
-  <!-- NOTIFICATION -->
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<!-- ================= MAIN APPLICATION ================= -->
+
+<div id="appPage" class="app-layout hidden">
+
+  <!-- SIDEBAR -->
+
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+      <div class="small-logo">
+        <img src="assets/noka-logo.png" alt="NOKA" style="width:100%;height:100%;object-fit:contain;">
+      </div>
+
+      <div>
+        <h2>NOKA</h2>
+        <small>Inventory System</small>
+      </div>
+    </div>
+
+    <nav class="navigation">
+
+      <button class="nav-item active" data-page="dashboard">
+        <span>▦</span> Dashboard
+      </button>
+
+      <button class="nav-item" data-page="products">
+        <span>▤</span> Products
+      </button>
+
+      <button class="nav-item" data-page="stock">
+        <span>▣</span> Stock Management
+      </button>
+
+      <button class="nav-item" data-page="sales">
+        <span>▧</span> Sales
+      </button>
+
+      <button class="nav-item" data-page="customers">
+        <span>♙</span> Customers
+      </button>
+
+      <button class="nav-item" data-page="suppliers">
+        <span>♧</span> Suppliers
+      </button>
+
+      <button class="nav-item" data-page="reports">
+        <span>▥</span> Reports
+      </button>
+
+      <button class="nav-item" data-page="settings">
+        <span>⚙</span> Settings
+      </button>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+      <button id="logoutBtn" class="nav-item logout-btn">
+        <span>↪</span> Logout
+      </button>
+
+      <small>© SUDATELL NIG LIMITED</small>
+
+    </div>
+  </aside>
 
 
-  <!-- SCRIPTS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js"></script>
+  <!-- MAIN CONTENT -->
+
+  <main class="content-area">
+
+    <header class="topbar">
+
+      <div>
+        <h1 id="pageTitle">Dashboard</h1>
+        <p>Welcome to NOKA Inventory Management</p>
+      </div>
+
+      <div class="topbar-right">
+        <span class="system-label">Inventory System</span>
+      </div>
+
+    </header>
+
+
+    <!-- DASHBOARD -->
+
+    <section id="page-dashboard" class="page-content">
+
+      <div class="welcome-banner">
+        <div>
+          <h2>Welcome to NOKA</h2>
+          <p>Manage your products, stock and sales in one place.</p>
+        </div>
+      </div>
+
+      <!-- NOKA PRO ADVERTISEMENT -->
+
+      <div class="coming-soon">
+
+        <span class="soon-label">COMING SOON</span>
+
+        <h2>NOKA INVENTORY PRO</h2>
+
+        <p>
+          Take your business management to the next level.
+          Discover more powerful inventory and business tools.
+        </p>
+
+        <p><strong>Something bigger is coming!</strong></p>
+
+      </div>
+
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <span>Total Products</span>
+          <h2 id="totalProducts">0</h2>
+        </div>
+
+        <div class="stat-card">
+          <span>Total Stock</span>
+          <h2 id="totalStock">0</h2>
+        </div>
+
+        <div class="stat-card">
+          <span>Total Sales</span>
+          <h2 id="totalSales">₦0.00</h2>
+        </div>
+
+        <div class="stat-card">
+          <span>Low Stock Items</span>
+          <h2 id="lowStock">0</h2>
+        </div>
+
+      </div>
+
+      <div class="content-card">
+
+        <div class="section-heading">
+          <h2>Recent Products</h2>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>SKU</th>
+                <th>Category</th>
+                <th>Quantity</th>
+              </tr>
+            </thead>
+
+            <tbody id="recentProducts">
+              <tr>
+                <td colspan="4">No products available</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- PRODUCTS -->
+
+    <section id="page-products" class="page-content hidden">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Products Management</h2>
+          <p>Manage your inventory products.</p>
+        </div>
+
+        <div class="action-buttons">
+
+          <button id="exportProductsBtn" class="secondary-btn">
+            Export Products
+          </button>
+
+          <button id="stockMovementBtn" class="secondary-btn">
+            Stock Movement
+          </button>
+
+          <button id="addProductBtn" class="primary-btn">
+            + Add Product
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="content-card">
+
+        <div class="search-box">
+          <input
+            type="search"
+            id="productSearch"
+            placeholder="Search products..."
+          >
+        </div>
+
+        <div class="table-container">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>SKU</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Cost Price</th>
+                <th>Selling Price</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody id="productsTable">
+              <tr>
+                <td colspan="7">Loading products...</td>
+              </tr>
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- STOCK -->
+
+    <section id="page-stock" class="page-content hidden">
+
+      <div class="section-heading">
+        <div>
+          <h2>Stock Management</h2>
+          <p>Monitor stock movements and inventory levels.</p>
+        </div>
+      </div>
+
+      <div class="content-card">
+
+        <div class="table-container">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Movement Type</th>
+                <th>Quantity</th>
+                <th>Notes</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+
+            <tbody id="stockTable">
+              <tr>
+                <td colspan="5">No stock movements available</td>
+              </tr>
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SALES -->
+
+    <section id="page-sales" class="page-content hidden">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Sales Management</h2>
+          <p>View and manage your sales transactions.</p>
+        </div>
+
+        <button id="newSaleBtn" class="primary-btn">
+          + New Sale
+        </button>
+
+      </div>
+
+      <div class="content-card">
+
+        <div class="table-container">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Total</th>
+                <th>Payment Method</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+
+            <tbody id="salesTable">
+              <tr>
+                <td colspan="5">No sales available</td>
+              </tr>
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- CUSTOMERS -->
+
+    <section id="page-customers" class="page-content hidden">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Customers</h2>
+          <p>Manage your customer records.</p>
+        </div>
+
+        <button id="addCustomerBtn" class="primary-btn">
+          + Add Customer
+        </button>
+
+      </div>
+
+      <div class="content-card">
+
+        <div class="table-container">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody id="customersTable">
+              <tr>
+                <td colspan="5">No customers available</td>
+              </tr>
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SUPPLIERS -->
+
+    <section id="page-suppliers" class="page-content hidden">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>Suppliers</h2>
+          <p>Manage your supplier information.</p>
+        </div>
+
+        <button id="addSupplierBtn" class="primary-btn">
+          + Add Supplier
+        </button>
+
+      </div>
+
+      <div class="content-card">
+
+        <div class="table-container">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody id="suppliersTable">
+              <tr>
+                <td colspan="5">No suppliers available</td>
+              </tr>
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- REPORTS -->
+
+    <section id="page-reports" class="page-content hidden">
+
+      <div class="section-heading">
+        <div>
+          <h2>Reports</h2>
+          <p>Generate inventory and sales reports.</p>
+        </div>
+      </div>
+
+      <div class="report-grid">
+
+        <div class="content-card">
+          <h3>Product Report</h3>
+          <p>Export your product inventory information.</p>
+
+          <button id="productReportBtn" class="primary-btn">
+            Product Report
+          </button>
+        </div>
+
+        <div class="content-card">
+          <h3>Sales Report</h3>
+          <p>Export your sales transaction information.</p>
+
+          <button id="salesReportBtn" class="primary-btn">
+            Sales Report
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- SETTINGS -->
+
+    <section id="page-settings" class="page-content hidden">
+
+      <div class="section-heading">
+        <div>
+          <h2>Settings</h2>
+          <p>Application information and account settings.</p>
+        </div>
+      </div>
+
+      <div class="content-card">
+
+        <h3>NOKA Inventory System</h3>
+        <p>Inventory Management System</p>
+        <p><strong>Developer:</strong> SUDATELL NIG LIMITED</p>
+        <p><strong>Database:</strong> Supabase</p>
+        <p><strong>Hosting:</strong> GitHub Pages</p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ABOUT SUDATELL -->
+
+    <section id="page-about" class="page-content hidden">
+
+      <div class="company-section">
+
+        <img
+          src="assets/noka-logo.png"
+          alt="NOKA Logo"
+          class="auth-logo"
+        >
+
+        <h2>About SUDATELL NIG LIMITED</h2>
+
+        <p>
+          SUDATELL NIG LIMITED is a technology company focused on
+          innovative digital solutions, software development,
+          mobile applications and website development.
+        </p>
+
+        <div class="developer-avatar">👨‍💻</div>
+
+        <h3>Our Technology & Development Team</h3>
+
+        <p>
+          Building useful digital products that solve real business
+          problems through technology and innovation.
+        </p>
+
+        <h3>Our Services</h3>
+
+        <div class="service-grid">
+
+          <div class="service-item">📱 Mobile App Development</div>
+          <div class="service-item">💻 Website Development</div>
+          <div class="service-item">📦 Inventory Systems</div>
+          <div class="service-item">⚙️ Business Software</div>
+          <div class="service-item">☀️ Solar Installation</div>
+          <div class="service-item">🚀 Digital Solutions</div>
+
+        </div>
+
+        <h3 style="margin-top:25px;">Contact Us</h3>
+
+        <p>
+          Phone:
+          <a class="company-contact" href="tel:07025853310">
+            07025853310
+          </a>
+        </p>
+
+        <p>
+          Email:
+          <a class="company-contact" href="mailto:sudatellnigltd@gmail.com">
+            sudatellnigltd@gmail.com
+          </a>
+        </p>
+
+        <p><strong>SUDATELL NIG LIMITED</strong></p>
+        <p>Innovation That Solves Problems.</p>
+
+      </div>
+
+    </section>
+
+
+    <footer class="app-footer">
+      NOKA Inventory System · Developed by SUDATELL NIG LIMITED
+    </footer>
+
+  </main>
+</div>
+
+
+<!-- ================= MODAL ================= -->
+
+<div id="modalOverlay" class="modal-overlay hidden">
+
+  <div class="modal-box">
+
+    <div class="modal-header">
+
+      <h2 id="modalTitle">Details</h2>
+
+      <button id="closeModal" type="button" aria-label="Close">
+        &times;
+      </button>
+
+    </div>
+
+    <div id="modalBody" class="modal-body"></div>
+
+  </div>
+</div>
+
+
+<!-- NOTIFICATION -->
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+
+<!-- AUTH DISPLAY & PASSWORD EYE -->
+
+<script>
+  function showAuthPanel(panelId) {
+    const panels = [
+      "loginPanel",
+      "registerPanel",
+      "resetPanel"
+    ];
+
+    panels.forEach(id => {
+      document.getElementById(id).classList.add("hidden");
+    });
+
+    document.getElementById(panelId).classList.remove("hidden");
+  }
+
+  document.querySelectorAll(".password-toggle").forEach(button => {
+    button.addEventListener("click", () => {
+      const input = document.getElementById(button.dataset.target);
+
+      if (!input) return;
+
+      const showing = input.type === "password";
+      input.type = showing ? "text" : "password";
+
+      button.textContent = showing ? "🙈" : "👁️";
+      button.setAttribute(
+        "aria-label",
+        showing ? "Hide password" : "Show password"
+      );
+    });
+  });
+
+  document.getElementById("registerForm").addEventListener("submit", event => {
+    const password = document.getElementById("registerPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
+
+    const strong =
+      password.length >= 8 &&
+      /[A-Z]/.test(password) &&
+      /[a-z]/.test(password) &&
+      /[0-9]/.test(password) &&
+      /[^A-Za-z0-9]/.test(password);
+
+    if (!strong) {
+      event.preventDefault();
+      document.getElementById("registerMessage").textContent =
+        "Password must contain uppercase, lowercase, number and special character.";
+      return;
+    }
+
+    if (password !== confirm) {
+      event.preventDefault();
+      document.getElementById("registerMessage").textContent =
+        "Passwords do not match.";
+      return;
+    }
+
+    if (!document.getElementById("acceptTerms").checked) {
+      event.preventDefault();
+      document.getElementById("registerMessage").textContent =
+        "Please accept the Terms and Privacy Policy.";
+    }
+  });
+</script>
+
+
+<!-- SUPABASE -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- EXISTING APPLICATION LOGIC -->
+
+<script src="app.js"></script>
 
 </body>
 </html>
