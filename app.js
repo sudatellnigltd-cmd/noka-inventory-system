@@ -1,3 +1,4 @@
+
 /* =====================================================
    NOKA INVENTORY MANAGEMENT SYSTEM
    Developer: SUDATELL NIG LIMITED
@@ -80,7 +81,7 @@ function emptyRow(columns) {
 function requireDatabase() {
     if (!db) {
         notify(
-            "Please configure your Supabase Publishable Key in app.js.",
+            "Supabase is not configured. Check your Supabase configuration.",
             "error"
         );
         return false;
@@ -93,13 +94,92 @@ function setButtonLoading(button, loading, text = "Please wait...") {
     if (!button) return;
 
     if (loading) {
-        button.dataset.originalText = button.textContent;
+        if (!button.dataset.originalText) {
+            button.dataset.originalText = button.textContent;
+        }
+
         button.disabled = true;
         button.textContent = text;
     } else {
         button.disabled = false;
         button.textContent = button.dataset.originalText || "Save";
+        delete button.dataset.originalText;
     }
+}
+
+// PASSWORD SECURITY
+function strongPassword(password) {
+    return password.length >= 8 &&
+        /[A-Z]/.test(password) &&
+        /[a-z]/.test(password) &&
+        /[0-9]/.test(password) &&
+        /[^A-Za-z0-9]/.test(password);
+}
+
+function setupPasswordVisibility() {
+    document.querySelectorAll("[data-toggle-password]").forEach(button => {
+        if (button.dataset.passwordReady === "true") return;
+
+        button.dataset.passwordReady = "true";
+
+        button.addEventListener("click", () => {
+            const input = $(button.dataset.togglePassword);
+
+            if (!input) return;
+
+            const show = input.type === "password";
+
+            input.type = show ? "text" : "password";
+            button.textContent = show ? "🙈" : "👁️";
+
+            button.setAttribute(
+                "aria-label",
+                show ? "Hide password" : "Show password"
+            );
+        });
+    });
+}
+
+function setupPasswordStrength() {
+    const password = $("registerPassword");
+    const strength = $("passwordStrength");
+
+    if (!password || !strength) return;
+
+    password.addEventListener("input", () => {
+        const value = password.value;
+        let score = 0;
+
+        if (value.length >= 8) score++;
+        if (/[A-Z]/.test(value)) score++;
+        if (/[a-z]/.test(value)) score++;
+        if (/[0-9]/.test(value)) score++;
+        if (/[^A-Za-z0-9]/.test(value)) score++;
+
+        const labels = [
+            "Very weak",
+            "Weak",
+            "Fair",
+            "Good",
+            "Strong",
+            "Very strong"
+        ];
+
+        strength.textContent = labels[score];
+        strength.dataset.strength = String(score);
+    });
+}
+
+function getFormValue(form, names) {
+    for (const name of names) {
+        const field = form.elements.namedItem(name);
+
+        if (field) {
+            return String(field.value || "").trim();
+        }
+    }
+
+    return "";
 }
 
 // MODAL
@@ -113,9 +193,9 @@ function openModal(title, content) {
 
     $("modalTitle").textContent = title;
     $("modalBody").innerHTML = content;
-
-    // Remove hidden class so the modal becomes visible.
     $("modalOverlay").classList.remove("hidden");
+
+    setupPasswordVisibility();
 }
 
 // AUTHENTICATION
@@ -123,9 +203,12 @@ async function login(email, password) {
     if (!requireDatabase()) return;
 
     const message = $("loginMessage");
+    const button = $("loginForm")?.querySelector('[type="submit"]');
 
     try {
         if (message) message.textContent = "Signing in...";
+
+        setButtonLoading(button, true, "Signing in...");
 
         const { data, error } = await db.auth.signInWithPassword({
             email,
@@ -135,12 +218,154 @@ async function login(email, password) {
         if (error) throw error;
 
         currentUser = data.user;
+
         await loadApplication();
 
         if (message) message.textContent = "";
 
     } catch (error) {
-        if (message) message.textContent = error.message;
+        if (message) {
+            message.textContent = error.message;
+        } else {
+            notify(error.message, "error");
+        }
+    } finally {
+        setButtonLoading(button, false);
+    }
+}
+
+async function registerUser(event) {
+    event.preventDefault();
+
+    if (!requireDatabase()) return;
+
+    const form = event.target;
+    const button = form.querySelector('[type="submit"]');
+
+    const name = getFormValue(form, [
+        "name",
+        "full_name",
+        "fullName"
+    ]);
+
+    const company = getFormValue(form, [
+        "company",
+        "company_name"
+    ]);
+
+    const email = getFormValue(form, ["email"]).toLowerCase();
+
+    const phone = getFormValue(form, ["phone"]);
+
+    const password = getFormValue(form, [
+        "password",
+        "registerPassword"
+    ]);
+
+    const confirmPassword = getFormValue(form, [
+        "confirmPassword",
+        "confirm_password",
+        "password_confirmation"
+    ]);
+
+    const terms = form.querySelector(
+        '[name="terms"], #terms'
+    );
+
+    if (!name || !email || !password || !confirmPassword) {
+        return notify("Please complete all required fields.", "error");
+    }
+
+    if (!strongPassword(password)) {
+        return notify(
+            "Password must contain at least 8 characters, uppercase, lowercase, number and symbol.",
+            "error"
+        );
+    }
+
+    if (password !== confirmPassword) {
+        return notify("Passwords do not match.", "error");
+    }
+
+    if (terms && !terms.checked) {
+        return notify("Please accept the terms and conditions.", "error");
+    }
+
+    try {
+        setButtonLoading(button, true, "Creating account...");
+
+        const { data, error } = await db.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    full_name: name,
+                    company_name: company,
+                    phone: phone
+                }
+            }
+        });
+
+        if (error) throw error;
+
+        if (data.session && data.user) {
+            currentUser = data.user;
+
+            notify("Registration successful.");
+
+            await loadApplication();
+        } else {
+            notify(
+                "Registration successful. Please check your email to verify your account."
+            );
+
+            form.reset();
+
+            $("registerPanel")?.classList.add("hidden");
+            $("loginPanel")?.classList.remove("hidden");
+        }
+
+    } catch (error) {
+        notify(error.message || "Registration failed.", "error");
+    } finally {
+        setButtonLoading(button, false);
+    }
+}
+
+async function resetUserPassword(event) {
+    event.preventDefault();
+
+    if (!requireDatabase()) return;
+
+    const form = event.target;
+    const button = form.querySelector('[type="submit"]');
+
+    const email = getFormValue(form, [
+        "email",
+        "resetEmail"
+    ]);
+
+    if (!email) {
+        return notify("Enter your registered email address.", "error");
+    }
+
+    try {
+        setButtonLoading(button, true, "Sending...");
+
+        const { error } = await db.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.origin
+        });
+
+        if (error) throw error;
+
+        notify("Password reset link sent. Check your email.");
+
+        form.reset();
+
+    } catch (error) {
+        notify(error.message || "Unable to send reset email.", "error");
+    } finally {
+        setButtonLoading(button, false);
     }
 }
 
@@ -188,8 +413,13 @@ async function checkSession() {
         db.auth.onAuthStateChange((event, session) => {
             if (event === "SIGNED_OUT" || !session) {
                 currentUser = null;
+
                 $("loginPage")?.classList.remove("hidden");
                 $("appPage")?.classList.add("hidden");
+            }
+
+            if (event === "PASSWORD_RECOVERY") {
+                showPasswordUpdateForm();
             }
         });
 
@@ -198,12 +428,93 @@ async function checkSession() {
     }
 }
 
+// UPDATE PASSWORD AFTER RESET
+function showPasswordUpdateForm() {
+    openModal("Create New Password", `
+        <form id="updatePasswordForm" class="modal-form">
+
+            <label>New Password</label>
+            <div class="password-field">
+                <input
+                    id="newPassword"
+                    name="password"
+                    type="password"
+                    minlength="8"
+                    required
+                >
+                <button
+                    type="button"
+                    data-toggle-password="newPassword"
+                >👁️</button>
+            </div>
+
+            <label>Confirm New Password</label>
+            <div class="password-field">
+                <input
+                    id="confirmNewPassword"
+                    name="confirmPassword"
+                    type="password"
+                    minlength="8"
+                    required
+                >
+                <button
+                    type="button"
+                    data-toggle-password="confirmNewPassword"
+                >👁️</button>
+            </div>
+
+            <button type="submit" class="primary-btn">
+                Update Password
+            </button>
+        </form>
+    `);
+
+    $("updatePasswordForm")?.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const password = $("newPassword").value;
+        const confirm = $("confirmNewPassword").value;
+
+        if (!strongPassword(password)) {
+            return notify(
+                "Use at least 8 characters with uppercase, lowercase, number and symbol.",
+                "error"
+            );
+        }
+
+        if (password !== confirm) {
+            return notify("Passwords do not match.", "error");
+        }
+
+        try {
+            const { error } = await db.auth.updateUser({ password });
+
+            if (error) throw error;
+
+            closeModal();
+            notify("Password updated successfully.");
+
+        } catch (error) {
+            notify(error.message, "error");
+        }
+    });
+}
+
 // LOAD APPLICATION
 async function loadApplication() {
     if (!db || !currentUser) return;
 
     $("loginPage")?.classList.add("hidden");
     $("appPage")?.classList.remove("hidden");
+
+    const userName = $("userName");
+
+    if (userName) {
+        userName.textContent =
+            currentUser.user_metadata?.full_name ||
+            currentUser.email ||
+            "User";
+    }
 
     try {
         await Promise.all([
@@ -293,7 +604,8 @@ function navigate(page) {
         "customers",
         "suppliers",
         "reports",
-        "settings"
+        "settings",
+        "about"
     ];
 
     if (!allowedPages.includes(page)) return;
@@ -318,11 +630,12 @@ function navigate(page) {
         customers: "Customers",
         suppliers: "Suppliers",
         reports: "Reports",
-        settings: "Settings"
+        settings: "Settings",
+        about: "About SUDATELL"
     };
 
     if ($("pageTitle")) {
-        $("pageTitle").textContent = titles[page];
+        $("pageTitle").textContent = titles[page] || page;
     }
 
     if (page === "dashboard") updateDashboard();
@@ -903,7 +1216,6 @@ async function saveSale(event) {
     const invoice = "NOKA-" + Date.now();
 
     try {
-        // Create sale record.
         const { data: sale, error: saleError } = await db
             .from("sales")
             .insert({
@@ -919,7 +1231,6 @@ async function saveSale(event) {
 
         if (saleError) throw saleError;
 
-        // Create sale item.
         const { error: itemError } = await db
             .from("sale_items")
             .insert({
@@ -934,7 +1245,6 @@ async function saveSale(event) {
 
         if (itemError) throw itemError;
 
-        // Update product stock.
         const { error: stockError } = await db
             .from("products")
             .update({
@@ -944,7 +1254,6 @@ async function saveSale(event) {
 
         if (stockError) throw stockError;
 
-        // Record stock movement.
         const { error: movementError } = await db
             .from("stock_movements")
             .insert({
@@ -1111,7 +1420,7 @@ function showSalesReport() {
 // EVENT LISTENERS
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Login
+    // LOGIN
     $("loginForm")?.addEventListener("submit", event => {
         event.preventDefault();
 
@@ -1121,17 +1430,30 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     });
 
-    // Logout
+    // REGISTRATION
+    $("registerForm")?.addEventListener("submit", registerUser);
+
+    // FORGOT PASSWORD
+    $("resetPasswordForm")?.addEventListener(
+        "submit",
+        resetUserPassword
+    );
+
+    // PASSWORD VISIBILITY AND STRENGTH
+    setupPasswordVisibility();
+    setupPasswordStrength();
+
+    // LOGOUT
     $("logoutBtn")?.addEventListener("click", logout);
 
-    // Navigation
+    // NAVIGATION
     document.querySelectorAll("[data-page]").forEach(item => {
         item.addEventListener("click", () => {
             navigate(item.dataset.page);
         });
     });
 
-    // Products
+    // PRODUCTS
     $("addProductBtn")?.addEventListener("click", () => productForm());
 
     $("productSearch")?.addEventListener("input", event => {
@@ -1140,24 +1462,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $("exportProductsBtn")?.addEventListener("click", exportProducts);
 
-    // Stock
+    // STOCK
     $("stockMovementBtn")?.addEventListener("click", stockForm);
 
-    // Sales
+    // SALES
     $("newSaleBtn")?.addEventListener("click", saleForm);
 
-    // Customers
+    // CUSTOMERS
     $("addCustomerBtn")?.addEventListener("click", customerForm);
 
-    // Suppliers
+    // SUPPLIERS
     $("addSupplierBtn")?.addEventListener("click", supplierForm);
 
-    // Reports
+    // REPORTS
     $("productReportBtn")?.addEventListener("click", showProductReport);
-
     $("salesReportBtn")?.addEventListener("click", showSalesReport);
 
-    // Modal close
+    // MODAL CLOSE
     $("closeModal")?.addEventListener("click", closeModal);
 
     $("modalOverlay")?.addEventListener("click", event => {
@@ -1166,7 +1487,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Table actions
+    // TABLE ACTIONS
     document.addEventListener("click", event => {
         const button = event.target.closest("[data-action]");
 
@@ -1199,6 +1520,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Start application
+    // START APPLICATION
     checkSession();
 });
